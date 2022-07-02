@@ -1,5 +1,5 @@
 # WebCommandLine
-Add a CLI to an ASP.NET Core web application that supports dependency injection and authentication with as little two lines of code.
+Add a CLI to an ASP.NET Core web application that supports dependency injection, authorization and authentication with as little as two lines of code.
 
 ### Installing WebCommandLine
 
@@ -7,11 +7,11 @@ You should install [WebCommandLine with NuGet](https://www.nuget.org/packages/We
 
     Install-Package WebCommandLine
     
-Or via the .NET Core command line interface:
+Or via the .NET command line interface (.NET CLI):
 
     dotnet add package WebCommandLine
 
-Either commands, from Package Manager Console or .NET Core CLI, will download and installation of WebCommandLine and all its required dependencies.
+Either commands, from Package Manager Console or .NET Core CLI, will allow download and installation of WebCommandLine and all its required dependencies.
 
 ### How do I get started?
 
