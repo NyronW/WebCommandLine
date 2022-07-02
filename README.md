@@ -1,5 +1,5 @@
 # WebCommandLine
-Add a CLI to an aspnet core web application that supports depedency injection , authentication with as little two lines of code.
+Add a CLI to an ASP.NET Core web application that supports dependency injection and authentication with as little two lines of code.
 
 ### Installing WebCommandLine
 
@@ -11,18 +11,18 @@ Or via the .NET Core command line interface:
 
     dotnet add package WebCommandLine
 
-Either commands, from Package Manager Console or .NET Core CLI, will download and install WebCommandLine and all required dependencies.
+Either commands, from Package Manager Console or .NET Core CLI, will download and installation of WebCommandLine and all its required dependencies.
 
 ### How do I get started?
 
-First, configure WebCommandLibne to know where the commands are located, in the startup of your application:
+First, configure WebCommandLine to know where the commands are located, in the startup of your application:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 //...
 
-builder.Services.AddWebCommandLine(typeof(MyClass));// Tell WebCommandLine which assembly to scan for console commands
+builder.Services.AddWebCommandLine(typeof(MyClass));// Tells WebCommandLine which assembly to scan for console commands
 
 //...
 
@@ -30,7 +30,7 @@ app.UseWebCommandLine();
 
 ```
 
-Create a class that implements the IConsoleCommand interface and add the ConsoleCommandAttribute to the class definition
+Create a class that implements the IConsoleCommand interface and add the ConsoleCommandAttribute to the class definition:
 
 ```csharp
 [ConsoleCommand("echo", "Echos back the first arg received")]
@@ -49,7 +49,7 @@ public class Echo : IConsoleCommand
 ```
 Run the application and then press the CTRL + ` keys to launch the web command line.
 
-You can also implement the abstract base ConsoleCommandBase to support help text for your commands by passing '?' or help as argument when runnig youor command.
+You can also implement the abstract base class <em>ConsoleCommandBase</em> to support help text for your commands by passing '?' or help as argument when running your command:
 
 ```csharp
 [ConsoleCommand("greet", "Returns a greeting message")]
@@ -58,7 +58,7 @@ public class Greet : ConsoleCommandBase
     public override ConsoleResult Help()
     {
         var sb = new StringBuilder("<table class='webcli-tbl'><tr><td colspan='3' class='webcli-val'>Lists available arguments</td></tr>");
-        sb.Append("<tr><td class='webcli-lbl'>USAGE:</td><td colspan='2' class='webcli-val'>greet nyron</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>USAGE:</td><td colspan='2' class='webcli-val'>greet Nyron</td></tr>");
         sb.Append("</table>");
 
         return new ConsoleResult(sb.ToString()) { isHTML = true };
@@ -75,7 +75,7 @@ public class Greet : ConsoleCommandBase
     }
 }
 ```
-There is also support for strongly typed commands. The example below shows how to implement a strongly typed command using fluent commandline parser to parse the aruments
+There is also support for strongly typed commands. The example below shows how to implement a strongly typed command using [Fluent Command Line Parser](https://fclp.github.io/fluent-command-line-parser/) to parse the arguments:
 
 ```csharp
  public class AddUserArguments
@@ -113,7 +113,7 @@ public class AddUser : ConsoleCommandBase<AddUserArguments>
         var sb = new StringBuilder("<table class='webcli-tbl'><tr><td colspan='3' class='webcli-val'>Lists available arguments</td></tr>");
         sb.Append("<tr><td class='webcli-lbl'>-n</td><td>:</td><td class='webcli-val'>Name that uniquely identifies user</td></tr>");
         sb.Append("<tr><td class='webcli-lbl'>-p</td><td>:</td><td class='webcli-val'>User password, Default will be used is not value is provided</td></tr>");
-        sb.Append("<tr><td class='webcli-lbl'>-c</td><td>:</td><td class='webcli-val'>Claims that determine what funcions the user can access. Valid options includes:              reports,user, customer & webcli (optional)</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>-c</td><td>:</td><td class='webcli-val'>Claims that determine what functions the user can access. Valid options includes:              reports,user, customer & webcli (optional)</td></tr>");
         sb.Append("<tr><td class='webcli-lbl'>USAGE:</td><td colspan='2' class='webcli-val'>add-user -n nyron.williams@willcorp.com -p MySecretPassword -c                          \"report,user,webcli\" -w 1</td></tr>");
         sb.Append("</table>");
 
