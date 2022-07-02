@@ -9,7 +9,7 @@ You should install [WebCommandLine with NuGet](https://www.nuget.org/packages/We
     
 Or via the .NET Core command line interface:
 
-    dotnet add package MediatR
+    dotnet add package WebCommandLine
 
 Either commands, from Package Manager Console or .NET Core CLI, will download and install MediatR and all required dependencies.
 
