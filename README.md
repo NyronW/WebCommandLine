@@ -47,3 +47,4 @@ public class Echo : IConsoleCommand
     }
 }
 ```
+Run the application and then press the CTRL + ` keys to launch the web command line
