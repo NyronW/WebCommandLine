@@ -49,7 +49,7 @@ public class Echo : IConsoleCommand
 ```
 Run the application and then press the CTRL + ` keys to launch the web command line.
 
-You can also implement one of the abstract base ConsoleCommandBase to support help text for your commands by passing '?' or help as argument when runnig youor command.
+You can also implement the abstract base ConsoleCommandBase to support help text for your commands by passing '?' or help as argument when runnig youor command.
 
 ```csharp
 [ConsoleCommand("greet", "Returns a greeting message")]
