@@ -11,9 +11,9 @@ Or via the .NET Core command line interface:
 
     dotnet add package WebCommandLine
 
-Either commands, from Package Manager Console or .NET Core CLI, will download and install MediatR and all required dependencies.
+Either commands, from Package Manager Console or .NET Core CLI, will download and install WebCommandLine and all required dependencies.
 
-### How do I get started?]
+### How do I get started?
 
 First, configure WebCommandLibne to know where the commands are located, in the startup of your application:
 
