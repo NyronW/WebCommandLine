@@ -9,6 +9,10 @@
     <AssemblyName>WebCommandLine</AssemblyName>
     <Authors>Nyron Williams</Authors>
     <Description>Web CLI library for aspnet core 2+ applications</Description>
+    <PackageProjectUrl>https://github.com/NyronW/WebCommandLine</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NyronW/WebCommandLine</RepositoryUrl>
+    <PackageTags>Command Line</PackageTags>
+    <PackageId>WebCommandLine</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

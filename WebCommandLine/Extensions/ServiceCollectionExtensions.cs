@@ -13,8 +13,15 @@ namespace WebCommandLine
         /// <summary>
         /// Registers commands from the specified assemblies
         /// </summary>
+        /// <param name="services">Service collection</param>     
+        /// <returns>Service collection</returns>
+        public static IServiceCollection AddWebCommandLine(this IServiceCollection services)
+            => services.AddWebCommandLine(configuration: null);
+        /// <summary>
+        /// Registers commands from the specified assemblies
+        /// </summary>
         /// <param name="commandAssemblyMarkerTypes"></param>
-        /// <param name="assemblies">Assemblies to scan</param>        
+        /// <param name="services">Service collection</param>     
         /// <returns>Service collection</returns>
         public static IServiceCollection AddWebCommandLine(this IServiceCollection services, params Type[] commandAssemblyMarkerTypes)
           => services.AddWebCommandLine(commandAssemblyMarkerTypes.Select(t => t.GetTypeInfo().Assembly), configuration: null);
@@ -68,7 +75,7 @@ namespace WebCommandLine
         /// <returns>Service collection</returns>
         public static IServiceCollection AddWebCommandLine(this IServiceCollection services, IEnumerable<Assembly> assemblies, Action<WebCommandLineConfiguration>? configuration)
         {
-            if (!assemblies.Any())
+            if (assemblies == null || !assemblies.Any())
             {
                 assemblies = AppDomain.CurrentDomain.GetAssemblies();
             }

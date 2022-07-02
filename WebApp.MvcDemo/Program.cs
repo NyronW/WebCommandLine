@@ -9,11 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddWebCommandLine(typeof(Echo), options =>
-{
-    //options.HelpCommand = "?";
-    //options.Authorization = new[] { new WebCommandLineAuthorization { Policy = "AdminUser" } };
-});
+builder.Services.AddWebCommandLine();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -23,8 +19,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.AccessDeniedPath = "/";
-    options.LoginPath = "/";
+    options.AccessDeniedPath = "/NotAuthorized";
+    options.LoginPath = "/Login";
 });
 
 builder.Services.AddTransient<IAuthorizationHandler, WebCmdLineAuthHandler>();
