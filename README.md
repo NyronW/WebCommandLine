@@ -140,3 +140,58 @@ public class AddUser : ConsoleCommandBase<AddUserArguments>
     }
 }
 ```
+### How do I secure WebCommandLine?
+
+WebCommandLine leverages existing ASP.NET Authorization features and requires little effort for integration. The WebCommandLine endpoint can be secured by setting the Authorization property of the WebCommandLineConfiguration class when calling the AddWebCommandLine method during your application startup.
+
+```csharp
+
+//...
+
+builder.Services.AddWebCommandLine(options =>
+{
+    options.Authorization = new[] { new WebCommandLineAuthorization { Policy = "AdminUser", Roles="Operator,Developer" } };
+});
+
+//...
+
+//Adding sample policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminUser", policyBuilder =>
+    {
+        policyBuilder.RequireAuthenticatedUser();
+        policyBuilder.RequireClaim("isAdmin", "true");
+    });
+
+    options.AddPolicy("PowerUser", policyBuilder =>
+    {
+        policyBuilder.RequireAuthenticatedUser();
+        policyBuilder.AddRequirements(new WebCmdLineRequirement());
+        policyBuilder.RequireAssertion(ctx =>
+        {
+            return ctx.User.IsInRole("BusinessAdmin");
+        });
+    });
+});
+
+```
+
+### How do I customize WebCommandLine?
+
+You can change WebCommandLine url base paths by modifying the WebCommandLineConfiguration class during your application startup.
+
+```csharp
+
+//...
+
+builder.Services.AddWebCommandLine(options =>
+{
+    options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
+    options.WebCliUrl = "/MyWebCli"; //command requests will go to this endpoint
+});
+
+//...
+
+```
+
