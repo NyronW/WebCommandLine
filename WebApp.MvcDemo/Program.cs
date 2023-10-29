@@ -7,9 +7,13 @@ using WebCommandLine.Commands;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
-builder.Services.AddWebCommandLine();
+builder.Services.AddWebCommandLine(options =>
+{
+    options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
+    options.WebCliUrl = "/MyWebCli"; // cammand requests will goes to this endpoint
+});
 
 builder.Services.AddAuthentication(options =>
 {
