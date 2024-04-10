@@ -13,7 +13,7 @@ builder.Services.AddWebCommandLine(options =>
 {
     options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
     options.WebCliUrl = "/MyWebCli"; // cammand requests will goes to this endpoint
-});
+}, typeof(Echo).Assembly);
 
 builder.Services.AddAuthentication(options =>
 {

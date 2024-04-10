@@ -1,25 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>WebCommandLine</RootNamespace>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     <AssemblyName>WebCommandLine</AssemblyName>
     <Authors>Nyron Williams</Authors>
-    <Description>Web CLI library for aspnet core (.Net 5 +) applications</Description>
+    <Description>Web CLI library for aspnet core applications</Description>
     <PackageProjectUrl>https://github.com/NyronW/WebCommandLine</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NyronW/WebCommandLine</RepositoryUrl>
     <PackageTags>Command Line</PackageTags>
     <PackageId>WebCommandLine</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="WebCommandLine.csproj.bak" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\webcli.css" />
@@ -27,15 +23,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="6.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization.Policy" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 
 </Project>
