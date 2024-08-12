@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <RootNamespace>WebCommandLine</RootNamespace>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     <AssemblyName>WebCommandLine</AssemblyName>
@@ -13,13 +14,10 @@
     <RepositoryUrl>https://github.com/NyronW/WebCommandLine</RepositoryUrl>
     <PackageTags>Command Line</PackageTags>
     <PackageId>WebCommandLine</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
     <NeutralLanguage>en</NeutralLanguage>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="WebCommandLine.csproj.bak" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\webcli.css" />
@@ -36,6 +34,6 @@
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.6" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Include="WebCommandLine.Contracts" Version="1.0.1" />
   </ItemGroup>
-
 </Project>

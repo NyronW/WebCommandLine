@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>false</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <RootNamespace>WebCommandLine</RootNamespace>
+    <AssemblyName>WebCommandLine.Contracts</AssemblyName>
+    <Authors>Nyron Williams</Authors>
+    <Description>Contract package for IConsoleCommand, ConsoleResult, ConsoleCommandAttribute etc</Description>
+    <PackageProjectUrl>https://github.com/NyronW/WebCommandLine</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NyronW/WebCommandLine</RepositoryUrl>
+    <PackageTags>Command Line</PackageTags>
+    <PackageId>WebCommandLine.Contracts</PackageId>
+    <Version>1.0.1</Version>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>
