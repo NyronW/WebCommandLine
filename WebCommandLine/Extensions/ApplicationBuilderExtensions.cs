@@ -56,7 +56,7 @@ namespace WebCommandLine
                 {
                     var cancellationToken = context.RequestAborted;
 
-                    if (!await AuthorizeAsync(context, policyEvaluator, config, authPolicyProvider))
+                    if (!await AuthorizeAsync(context, policyEvaluator!, config, authPolicyProvider!))
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         await context.Response.WriteModelAsync(ConsoleResult.CreateError("Not authorized."));

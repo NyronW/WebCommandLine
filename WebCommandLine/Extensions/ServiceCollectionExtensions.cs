@@ -93,17 +93,11 @@ namespace WebCommandLine
 
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetExportedTypes().Where(a => !a.IsAbstract))
+                foreach (var type in assembly.GetExportedTypes().Where(a => !a.IsAbstract && typeof(IConsoleCommand).IsAssignableFrom(a)))
                 {
-                    if (!interfaceTypes.Any(t => t.IsAssignableFrom(type))) continue;
-
                     var interfaces = type.GetInterfaces();
-                    foreach (var @interface in interfaces)
-                    {
-                        if (!interfaceTypes.Any(t => t == @interface)) continue;
-
+                    foreach (var @interface in interfaces.Where(i => i == typeof(IConsoleCommand)))
                         services.AddTransient(@interface, type);
-                    }
                 }
             }
 
