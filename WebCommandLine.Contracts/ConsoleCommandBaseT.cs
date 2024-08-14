@@ -7,7 +7,7 @@ namespace WebCommandLine
     {
         public override async Task<ConsoleResult> RunAsync(string[] args)
         {
-            if (args[0] == "?" || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
+            if (args.Length != 0 && (args[0] == "?" || args[0].Equals("help", StringComparison.OrdinalIgnoreCase)))
             {
                 return await Task.FromResult(Help());
             }

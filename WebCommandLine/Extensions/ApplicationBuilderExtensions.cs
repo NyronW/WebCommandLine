@@ -108,11 +108,11 @@ namespace WebCommandLine
                         return;
                     }
 
-                    IConsoleCommand cmdToRun = null;
+                    IConsoleCommand cmdToRun = null!;
 
                     foreach (var cmdType in commands)
                     {
-                        var attr = (ConsoleCommandAttribute)cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault();
+                        var attr = (ConsoleCommandAttribute)cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault()!;
                         if (attr == null || !attr.Name.Equals(cmd, StringComparison.OrdinalIgnoreCase)) continue;
                         cmdToRun = cmdType; break;
                     }
