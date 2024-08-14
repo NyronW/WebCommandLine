@@ -13,7 +13,10 @@ builder.Services.AddWebCommandLine(options =>
 {
     options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
     options.WebCliUrl = "/MyWebCli"; // cammand requests will goes to this endpoint
-}, typeof(Echo).Assembly);
+    // If true the JavaScript bjects with be automatically initialized, otherwise you have to manually inti window.cli object
+    // You would typically set this value to false when you want to override the default httpHandler
+    options.AutoInitJsInstance = false; 
+}, typeof(ShowTable).Assembly);
 
 builder.Services.AddAuthentication(options =>
 {

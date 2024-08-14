@@ -94,3 +94,29 @@
         transform: rotate(360deg);
     }
 }
+
+
+/*Result Table
+ ----------------------------------------------------*/
+/* Left-align table header text */
+.webcli-striped-tbl th {
+    text-align: left;
+    padding: 8px; /* Optional: Add padding for better spacing */
+    background-color: rgba( 255, 255, 255, 0.1 ); /* Optional: Light background for header */
+    color: white; /* Optional: Header text color */
+}
+
+/* Apply alternating row colors in tbody */
+.webcli-striped-tbl tbody tr:nth-child(odd) {
+    background-color: rgba( 255, 255, 255, 0.1 ); /* Lighter background for odd rows */
+}
+
+.webcli-striped-tbl tbody tr:nth-child(even) {
+    background-color: rgba( 255, 255, 255, 0.2 ); /* Darker background for even rows */
+}
+
+/* Optional: Style for table cells */
+.webcli-striped-tbl td {
+    padding: 8px; /* Add padding for better spacing */
+    color: white; /* Text color for table rows */
+}

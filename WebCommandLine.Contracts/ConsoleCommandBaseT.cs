@@ -17,9 +17,7 @@ namespace WebCommandLine
             {
                 try
                 {
-#pragma warning disable CS8604 // Possible null reference argument.
                     return await RunAsyncCore(args: result.Object);
-#pragma warning restore CS8604 // Possible null reference argument.
                 }
                 catch
                 {
@@ -28,9 +26,7 @@ namespace WebCommandLine
             }
             else
             {
-#pragma warning disable CS8604 // Possible null reference argument.
-                return ConsoleResult.CreateError(result.ErrorText);
-#pragma warning restore CS8604 // Possible null reference argument.
+                return ConsoleResult.CreateError(result.ErrorText!);
             }
         }
 

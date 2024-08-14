@@ -143,7 +143,7 @@ namespace WebCommandLine
         {
             var sb = new StringBuilder($"<table class='webcli-tbl'><tr><td class='webcli-lbl'>{config.HelpCommand}</td> <td>:</td> <td class='webcli-val'>Lists available commands</td></tr>");
 
-            foreach (var cmdType in commands)
+            foreach (var cmdType in commands.OrderBy(c => c.GetType().Name))
             {
                 var attr = cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute))
                                                 .FirstOrDefault() as ConsoleCommandAttribute;

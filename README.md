@@ -75,7 +75,70 @@ public class Greet : ConsoleCommandBase
     }
 }
 ```
-There is also support for strongly typed commands. The example below shows how to implement a strongly typed command using [Fluent Command Line Parser](https://fclp.github.io/fluent-command-line-parser/) to parse the arguments:
+There is also support for strongly typed commands, using the build in  argument parser or you can use your own parsing tool or logic.
+```csharp
+public class AddMemberArguments
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public string Category { get; set; }
+}
+
+[ConsoleCommand("add-member", "adds a new club member")]
+public class AddMember : ConsoleCommandBase<AddMemberArguments>
+{
+    protected readonly CommandLineParser<AddMemberArguments> _parser;
+
+    public AddMember()
+    {
+        _parser = new CommandLineParser<AddMemberArguments>();
+
+        _parser.Bind(arg => arg.Name)
+         .As('n', "name") 
+         .Required(); 
+
+        _parser.Bind(arg => arg.Age)
+         .As('a', "age")
+         .WhereGreaterThan(18,"Must be over 18 to join!");
+
+        _parser.Bind(arg => arg.Category)
+            .As('c', "category")
+            .WhereIn(["basic","gold","platinum"]);
+    }
+
+    public override ConsoleResult Help()
+    {
+        var sb = new StringBuilder("<table class='webcli-tbl'><tr><td colspan='3' class='webcli-val'>Lists available arguments</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>-n | -name</td><td>:</td><td class='webcli-val'>Name that uniquely identifies member</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>-a</td><td>:</td><td class='webcli-val'>Age of member. Must be over 18</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>-c</td><td>:</td><td class='webcli-val'>Member category. Valid options includes: basic,gold, platinum</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>USAGE:</td><td colspan='2' class='webcli-val'>add-member -a 34 -c platinum -w 1</td></tr>");
+        sb.Append("</table>");
+
+        return new ConsoleResult(sb.ToString()) { isHTML = true };
+    }
+
+    protected override CommandLineParserResult<AddMemberArguments> Parse(string[] args)
+    {
+        var result = _parser.Parse(args);
+
+        return result;
+    }
+
+    protected override Task<ConsoleResult> RunAsyncCore(AddMemberArguments model)
+    {
+        if (!model.Name.Equals("Jone Doe", StringComparison.OrdinalIgnoreCase))
+        {
+            return Task.FromResult(new ConsoleResult($"Member created successfully"));
+        }
+        else
+        {
+            return Task.FromResult(ConsoleResult.CreateError("Invalid name"));
+        }
+    }
+}
+```
+The example below shows how to implement a strongly typed command using [Fluent Command Line Parser](https://fclp.github.io/fluent-command-line-parser/) to parse the arguments:
 
 ```csharp
  public class AddUserArguments
@@ -189,9 +252,41 @@ builder.Services.AddWebCommandLine(options =>
 {
     options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
     options.WebCliUrl = "/MyWebCli"; //command requests will go to this endpoint
+
+    // If true the JavaScript bjects with be automatically initialized, otherwise you have to manually inti window.cli object
+    // You would typically set this value to false when you want to override the default httpHandler
+    options.AutoInitJsInstance = false; 
 });
 
 //...
 
 ```
 
+Client side code to override httpHandler
+```javascript
+document.addEventListener("DOMContentLoaded", function () {
+    const ajaxHandler = (endpoint, options) => {
+        const { method, headers, body } = options;
+        return $.ajax({
+            url: endpoint,
+            method: method,
+            headers: headers,
+            data: body,
+            contentType: headers['Content-Type'],
+            dataType: 'json'
+        });
+    };
+
+    const axiosHandler = (endpoint, options) => {
+      const { method, headers, body } = options;
+      return axios({
+        url: endpoint,
+        method: method,
+        headers: headers,
+        data: body,
+      }).then(response => response.data);
+    };
+
+    window.cli = new WebCLI('/MyWebCli', ajaxHandler);
+});
+```

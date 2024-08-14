@@ -1,4 +1,10 @@
-﻿namespace WebCommandLine
+﻿using System.Collections;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+
+namespace WebCommandLine
 {
     public class ConsoleResult
     {
@@ -15,6 +21,55 @@
         public static ConsoleResult CreateError(string errorMessage)
         {
             return new ConsoleErrorResult(errorMessage);
+        }
+
+        public static ConsoleResult Html(string html)
+        {
+            return new ConsoleResult(html) { isHTML = true };
+        }
+        public static ConsoleResult AsHtmlTable<TCollection>(TCollection collection, string cssClassName = "webcli-striped-tbl") where TCollection : class, IEnumerable
+        {
+            var sb = new StringBuilder();
+            var type = typeof(TCollection).GetGenericArguments().FirstOrDefault() ?? collection.GetType().GetElementType();
+
+            if (type == null)
+                return new ConsoleResult(sb.ToString()) { isHTML = true };
+
+
+            var properties = type.GetProperties();
+
+            sb.AppendLine($"<table class='{cssClassName}'>")
+                .AppendLine("<thead style='text-align:left;'>")
+                .AppendLine("<tr>");
+
+            foreach (var prop in properties)
+            {
+                var displayName = prop.GetCustomAttributes(typeof(DisplayNameAttribute), true)
+                                      .Cast<DisplayNameAttribute>()
+                                      .FirstOrDefault()?.DisplayName ?? prop.Name;
+                sb.Append($"<th>{displayName}</th>");
+            }
+
+            sb.AppendLine("</tr>")
+                .AppendLine("</thead>")
+                .AppendLine("<tbody>");
+
+            // Step 2: Generate table rows
+            foreach (var item in collection)
+            {
+                sb.Append("<tr>");
+                foreach (var prop in properties)
+                {
+                    var value = prop.GetValue(item)?.ToString() ?? string.Empty;
+                    sb.Append($"<td>{value}</td>");
+                }
+                sb.AppendLine("</tr>");
+            }
+
+            sb.AppendLine("</tbody>")
+                .AppendLine("</table>");
+
+            return new ConsoleResult(sb.ToString()) { isHTML = true };
         }
     }
 

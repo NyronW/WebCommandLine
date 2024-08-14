@@ -6,102 +6,115 @@ using System.Linq;
 using System.Reflection;
 using WebCommandLine.TagHelpers;
 
-namespace WebCommandLine
+namespace WebCommandLine;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    /// <summary>
+    /// Registers commands from the specified assemblies
+    /// </summary>
+    /// <param name="services">Service collection</param>     
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services)
+        => services.AddWebCommandLine(configuration: null);
+
+    /// <summary>
+    /// Registers commands from Assembly calling this method
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddWebCommmandLineFromCallingAssembly(this IServiceCollection services)
+        => services.AddWebCommandLine([], configuration: null, entryAssembly: Assembly.GetCallingAssembly(), scanAssemblies: false);
+
+    /// <summary>
+    /// Registers commands from the specified assemblies
+    /// </summary>
+    /// <param name="commandAssemblyMarkerTypes"></param>
+    /// <param name="services">Service collection</param>     
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, params Type[] commandAssemblyMarkerTypes)
+      => services.AddWebCommandLine(commandAssemblyMarkerTypes.Select(t => t.GetTypeInfo().Assembly), configuration: null);
+
+    /// <summary>
+    /// Registers commands from the specified assemblies
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="assemblies">Assemblies to scan</param>        
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, params Assembly[] assemblies)
+        => services.AddWebCommandLine(assemblies, configuration: null);
+
+    /// <summary>
+    /// Registers command from the assemblies that contain the specified types
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="commandAssemblyMarkerType"></param>
+    /// <param name="configuration">The action used to configure the options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, Type commandAssemblyMarkerType, Action<WebCommandLineConfiguration>? configuration)
+        => services.AddWebCommandLine(configuration, commandAssemblyMarkerType.GetTypeInfo().Assembly);
+
+
+    /// <summary>
+    /// Registers command from the assemblies that contain the specified types
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="commandAssemblyMarkerTypes"></param>
+    /// <param name="configuration">The action used to configure the options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, IEnumerable<Type> commandAssemblyMarkerTypes, Action<WebCommandLineConfiguration>? configuration)
+        => services.AddWebCommandLine(commandAssemblyMarkerTypes.Select(t => t.GetTypeInfo().Assembly), configuration);
+
+    /// <summary>
+    /// Registers commands from the specified assemblies
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="assemblies">Assemblies to scan</param>
+    /// <param name="configuration">The action used to configure the options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, Action<WebCommandLineConfiguration>? configuration, params Assembly[] assemblies)
+        => services.AddWebCommandLine(assemblies, configuration);
+
+    /// <summary>
+    /// Registers commands from the specified assemblies
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="assemblies">Assemblies to scan</param>
+    /// <param name="configuration">The action used to configure the options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddWebCommandLine(this IServiceCollection services, IEnumerable<Assembly> assemblies,
+        Action<WebCommandLineConfiguration>? configuration, Assembly entryAssembly = null!, bool scanAssemblies = true)
     {
-        /// <summary>
-        /// Registers commands from the specified assemblies
-        /// </summary>
-        /// <param name="services">Service collection</param>     
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services)
-            => services.AddWebCommandLine(configuration: null);
-        /// <summary>
-        /// Registers commands from the specified assemblies
-        /// </summary>
-        /// <param name="commandAssemblyMarkerTypes"></param>
-        /// <param name="services">Service collection</param>     
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, params Type[] commandAssemblyMarkerTypes)
-          => services.AddWebCommandLine(commandAssemblyMarkerTypes.Select(t => t.GetTypeInfo().Assembly), configuration: null);
-
-        /// <summary>
-        /// Registers commands from the specified assemblies
-        /// </summary>
-        /// <param name="services">Service collection</param>
-        /// <param name="assemblies">Assemblies to scan</param>        
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, params Assembly[] assemblies)
-            => services.AddWebCommandLine(assemblies, configuration: null);
-
-        /// <summary>
-        /// Registers command from the assemblies that contain the specified types
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="commandAssemblyMarkerType"></param>
-        /// <param name="configuration">The action used to configure the options</param>
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, Type commandAssemblyMarkerType, Action<WebCommandLineConfiguration>? configuration)
-            => services.AddWebCommandLine(configuration, commandAssemblyMarkerType.GetTypeInfo().Assembly);
-
-
-        /// <summary>
-        /// Registers command from the assemblies that contain the specified types
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="commandAssemblyMarkerTypes"></param>
-        /// <param name="configuration">The action used to configure the options</param>
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, IEnumerable<Type> commandAssemblyMarkerTypes, Action<WebCommandLineConfiguration>? configuration)
-            => services.AddWebCommandLine(commandAssemblyMarkerTypes.Select(t => t.GetTypeInfo().Assembly), configuration);
-
-        /// <summary>
-        /// Registers commands from the specified assemblies
-        /// </summary>
-        /// <param name="services">Service collection</param>
-        /// <param name="assemblies">Assemblies to scan</param>
-        /// <param name="configuration">The action used to configure the options</param>
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, Action<WebCommandLineConfiguration>? configuration, params Assembly[] assemblies)
-            => services.AddWebCommandLine(assemblies, configuration);
-
-        /// <summary>
-        /// Registers commands from the specified assemblies
-        /// </summary>
-        /// <param name="services">Service collection</param>
-        /// <param name="assemblies">Assemblies to scan</param>
-        /// <param name="configuration">The action used to configure the options</param>
-        /// <returns>Service collection</returns>
-        public static IServiceCollection AddWebCommandLine(this IServiceCollection services, IEnumerable<Assembly> assemblies, Action<WebCommandLineConfiguration>? configuration)
+        if (assemblies == null || !assemblies.Any())
         {
-            if (assemblies == null || !assemblies.Any())
-            {
+            if (scanAssemblies)
                 assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            }
-            var serviceConfig = new WebCommandLineConfiguration();
-
-            configuration?.Invoke(serviceConfig);
-
-            services.AddTransient<ITagHelperComponent, WebCmdTagHelperComponent>();
-
-            services.AddSingleton(_ => serviceConfig);
-
-            assemblies = assemblies.Distinct().ToArray();
-
-            var interfaceTypes = new[] { typeof(IConsoleCommand) };
-
-            foreach (var assembly in assemblies)
-            {
-                foreach (var type in assembly.GetExportedTypes().Where(a => !a.IsAbstract && typeof(IConsoleCommand).IsAssignableFrom(a)))
-                {
-                    var interfaces = type.GetInterfaces();
-                    foreach (var @interface in interfaces.Where(i => i == typeof(IConsoleCommand)))
-                        services.AddTransient(@interface, type);
-                }
-            }
-
-            return services;
+            else if (entryAssembly is { })
+                assemblies = [entryAssembly];
         }
+
+        var serviceConfig = new WebCommandLineConfiguration();
+
+        configuration?.Invoke(serviceConfig);
+
+        services.AddTransient<ITagHelperComponent, WebCmdTagHelperComponent>();
+
+        services.AddSingleton(_ => serviceConfig);
+
+        assemblies = assemblies.Distinct().ToArray();
+
+        var interfaceTypes = new[] { typeof(IConsoleCommand) };
+
+        foreach (var assembly in assemblies)
+        {
+            foreach (var type in assembly.GetExportedTypes().Where(a => !a.IsAbstract && typeof(IConsoleCommand).IsAssignableFrom(a)))
+            {
+                var interfaces = type.GetInterfaces();
+                foreach (var @interface in interfaces.Where(i => i == typeof(IConsoleCommand)))
+                    services.AddTransient(@interface, type);
+            }
+        }
+
+        return services;
     }
 }

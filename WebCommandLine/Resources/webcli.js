@@ -1,9 +1,19 @@
-﻿class WebCLI {
-    constructor(endpoint) {
+﻿// Interface for HTTP Handlers
+class HttpHandler {
+    post(endpoint, options) {
+        // Implement this method in the specific handler
+        throw new Error("Method 'post' must be implemented.");
+    }
+}
+
+
+class WebCLI {
+    constructor(endpoint, httpHandler) {
         var self = this;
         self.history = [];   //Command history
         self.cmdOffset = 0;    //Reverse offset into history
         self.endpoint = endpoint || "/webcli"; //default endpoint
+        self.httpHandler = httpHandler || self.defaultFetchHandler;
 
         self.createElements();
         self.wireEvents();
@@ -85,13 +95,16 @@
 
         //Server command:
         self.busy(true);
-        fetch(self.endpoint,
-            {
-                method: "post",
-                headers: new Headers({ "Content-Type": "application/json" }),
-                body: JSON.stringify({ cmdLine: txt })
-            })
-            .then(function (r) { return r.json(); })
+
+        let requestOptions = {
+            method: "post",
+            headers: new Headers({
+                "Content-Type": "application/json"
+            }),
+            body: JSON.stringify({ cmdLine: txt })
+        };
+
+        this.httpHandler(this.endpoint, requestOptions)
             .then(function (result) {
                 var output = result.output;
                 var style = result.isError ? "error" : "ok";
@@ -144,7 +157,7 @@
     }
 
     showGreeting() {
-        this.writeLine("Web CLI [Version 1.0.0]", "cmd");
+        this.writeLine("Web CLI [Version 1.0.4]", "cmd");
         this.newLine();
     }
 
@@ -180,5 +193,10 @@
         this.isBusy = b;
         this.busyEl.style.display = b ? "block" : "none";
         this.inputEl.style.display = b ? "none" : "block";
+    }
+
+    // Default fetch handler
+    defaultFetchHandler(endpoint, options) {
+        return fetch(endpoint, options).then(response => response.json());
     }
 }
