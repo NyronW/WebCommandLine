@@ -8,11 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="FluentCommandLineParser-netstandard" Version="1.4.3.13" />
-    <!--<PackageReference Include="WebCommandLine.Contracts" Version="1.0.1" />-->
+    <PackageReference Include="WebCommandLine.Contracts" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebCommandLine.Contracts\WebCommandLine.Contracts.csproj" />
     <ProjectReference Include="..\WebCommandLine\WebCommandLine.csproj" />
   </ItemGroup>
 
