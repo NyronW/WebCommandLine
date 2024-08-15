@@ -57,99 +57,93 @@ public static class ApplicationBuilderExtensions
             builder.Run(async context =>
             {
                 var cancellationToken = context.RequestAborted;
-
-                if (!await AuthorizeAsync(context, policyEvaluator!, config, authPolicyProvider!))
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    await context.Response.WriteModelAsync(ConsoleResult.CreateError("Not authorized."));
-                    return;
-                }
-
-                var req = context.Request;
-
-                if (req.Method != HttpMethod.Post.Method)
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                    await context.Response.WriteModelAsync(ConsoleResult.CreateError("Method not supported."));
-                    return;
-                }
-
-                if (req.ContentLength == 0)
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    await context.Response.WriteModelAsync(ConsoleResult.CreateError("No command argument detected."));
-                    return;
-                }
-
-                var command = new CommandInput();
-
-                if (req.Body.CanSeek) req.Body.Seek(0, SeekOrigin.Begin);
-
-                using (var reader = new StreamReader(req.Body, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024))
-                {
-                    var jsonString = await reader.ReadToEndAsync();
-                    command = JsonSerializer.Deserialize<CommandInput>(jsonString, JsonSerializerOptions);
-                }
-
-                if (string.IsNullOrWhiteSpace(command?.CmdLine))
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    await context.Response.WriteModelAsync(ConsoleResult.CreateError("Invalid command"));
-                    logger.LogDebug("Recieved invalid command from client");
-                    return;
-                }
-
-                var args = command.GetArgs();
-                var cmd = args.First();
-
-                var commands = app.ApplicationServices.GetServices<IConsoleCommand>();
-
-                if (cmd.Equals(config.HelpCommand, StringComparison.OrdinalIgnoreCase))
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    await context.Response.WriteModelAsync(Help(commands, config));
-                    return;
-                }
-
-                IConsoleCommand cmdToRun = null!;
-
-                foreach (var cmdType in commands)
-                {
-                    var attr = (ConsoleCommandAttribute)cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault()!;
-                    if (attr == null || !attr.Name.Equals(cmd, StringComparison.OrdinalIgnoreCase)) continue;
-                    cmdToRun = cmdType; break;
-                }
-
-                if (cmdToRun == null)
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    await context.Response.WriteModelAsync(new ConsoleErrorResult($"Invalid or missing command. Run the {config.HelpCommand} command to see a list of available commands"));
-                    return;
-                }
-
-                // Check for AuthorizeAttribute on the command and enforce authorization
-                var authorizeAttribute = cmdToRun.GetType().GetCustomAttribute<AuthorizeAttribute>();
-                if (authorizeAttribute != null)
-                {
-                    if (!await AuthorizeCommandAsync(context, policyEvaluator!, authorizeAttribute, authPolicyProvider!))
-                    {
-                        context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("Access denied."));
-                        return;
-                    }
-                }
-
-                // Instantiate the context and run the command
-                var commandContext = new CommandContext(context);
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
 
                 try
                 {
+                    if (!await AuthorizeAsync(context, policyEvaluator!, config, authPolicyProvider!))
+                    {
+                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Access denied."));
+                        return;
+                    }
+
+                    var req = context.Request;
+
+                    if (req.Method != HttpMethod.Post.Method)
+                    {
+                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("Method not supported."));
+                        return;
+                    }
+
+                    if (req.ContentLength == 0)
+                    {
+                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("No command argument detected."));
+                        return;
+                    }
+
+                    var command = new CommandInput();
+
+                    if (req.Body.CanSeek) req.Body.Seek(0, SeekOrigin.Begin);
+
+                    using (var reader = new StreamReader(req.Body, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024))
+                    {
+                        var jsonString = await reader.ReadToEndAsync();
+                        command = JsonSerializer.Deserialize<CommandInput>(jsonString, JsonSerializerOptions);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(command?.CmdLine))
+                    {
+                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("Invalid command"));
+                        logger.LogDebug("Recieved invalid command from client");
+                        return;
+                    }
+
+                    var args = command.GetArgs();
+                    var cmd = args.First();
+
+                    var commands = app.ApplicationServices.GetServices<IConsoleCommand>();
+
+                    if (cmd.Equals(config.HelpCommand, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await context.Response.WriteModelAsync(Help(commands, config));
+                        return;
+                    }
+
+                    IConsoleCommand cmdToRun = null!;
+
+                    foreach (var cmdType in commands)
+                    {
+                        var attr = (ConsoleCommandAttribute)cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault()!;
+                        if (attr == null || !attr.Name.Equals(cmd, StringComparison.OrdinalIgnoreCase)) continue;
+                        cmdToRun = cmdType; break;
+                    }
+
+                    if (cmdToRun == null)
+                    {
+                        await context.Response.WriteModelAsync(new ConsoleErrorResult($"Invalid or missing command. Run the {config.HelpCommand} command to see a list of available commands"));
+                        return;
+                    }
+
+                    // Check for AuthorizeAttribute on the command and enforce authorization
+                    var authorizeAttribute = cmdToRun.GetType().GetCustomAttribute<AuthorizeAttribute>();
+                    if (authorizeAttribute != null)
+                    {
+                        if (!await AuthorizeCommandAsync(context, policyEvaluator!, authorizeAttribute, authPolicyProvider!))
+                        {
+                            await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Access denied."));
+                            return;
+                        }
+                    }
+
+                    // Instantiate the context and run the command
+                    var commandContext = new CommandContext(context);
+
                     await context.Response.WriteModelAsync(await cmdToRun.RunAsync(commandContext, args.Skip(1).ToArray()));
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Unhandled exception occured while processing command");
-                    await context.Response.WriteModelAsync(new ConsoleErrorResult());
+                    await context.Response.WriteModelAsync(new ConsoleErrorResult("Internal server error occured while executing command"));
                 }
             });
         });
