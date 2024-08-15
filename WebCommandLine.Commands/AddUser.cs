@@ -52,7 +52,7 @@ namespace WebCommandLine.Commands
             return new CommandLineParserResult<AddUserArguments>(_parser.Object, result.ErrorText);
         }
 
-        protected override Task<ConsoleResult> RunAsyncCore(AddUserArguments userToAdd)
+        protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, AddUserArguments userToAdd)
         {
             if (!userToAdd.UserName.Equals("foo", StringComparison.OrdinalIgnoreCase))
             {

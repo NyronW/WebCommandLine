@@ -5,7 +5,7 @@ namespace WebCommandLine
 {
     public abstract class ConsoleCommandBase<TArgs> : ConsoleCommandBase where TArgs : new()
     {
-        public override async Task<ConsoleResult> RunAsync(string[] args)
+        public override async Task<ConsoleResult> RunAsync(CommandContext context, string[] args)
         {
             if (args.Length != 0 && (args[0] == "?" || args[0].Equals("help", StringComparison.OrdinalIgnoreCase)))
             {
@@ -17,7 +17,7 @@ namespace WebCommandLine
             {
                 try
                 {
-                    return await RunAsyncCore(args: result.Object);
+                    return await RunAsyncCore(context, result.Object);
                 }
                 catch
                 {
@@ -30,12 +30,12 @@ namespace WebCommandLine
             }
         }
 
-        protected override Task<ConsoleResult> RunAsyncCore(string[] args)
+        protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args)
         {
             return Task.FromResult(ConsoleResult.CreateError("Not Implemented"));
         }
 
         protected abstract CommandLineParserResult<TArgs> Parse(string[] args);
-        protected abstract Task<ConsoleResult> RunAsyncCore(TArgs args);
+        protected abstract Task<ConsoleResult> RunAsyncCore(CommandContext context, TArgs args);
     }
 }

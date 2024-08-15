@@ -36,7 +36,7 @@ Create a class that implements the IConsoleCommand interface and add the Console
 [ConsoleCommand("echo", "Echos back the first arg received")]
 public class Echo : IConsoleCommand
 {
-    public Task<ConsoleResult> RunAsync(string[] args)
+    public Task<ConsoleResult> RunAsync(CommandContext context, string[] args)
     {
         if (args.Length != 0)
         {
@@ -64,7 +64,7 @@ public class Greet : ConsoleCommandBase
         return new ConsoleResult(sb.ToString()) { isHTML = true };
     }
 
-    protected override Task<ConsoleResult> RunAsyncCore(string[] args)
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args)
     {
         if (args.Length == 0)
         {
@@ -125,7 +125,7 @@ public class AddMember : ConsoleCommandBase<AddMemberArguments>
         return result;
     }
 
-    protected override Task<ConsoleResult> RunAsyncCore(AddMemberArguments model)
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, AddMemberArguments model)
     {
         if (!model.Name.Equals("Jone Doe", StringComparison.OrdinalIgnoreCase))
         {
@@ -190,7 +190,7 @@ public class AddUser : ConsoleCommandBase<AddUserArguments>
         return new CommandLineParserResult<AddUserArguments>(_parser.Object, result.ErrorText);
     }
 
-    protected override Task<ConsoleResult> RunAsyncCore(AddUserArguments userToAdd)
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, AddUserArguments userToAdd)
     {
         if (!userToAdd.UserName.Equals("foo", StringComparison.OrdinalIgnoreCase))
         {
@@ -205,7 +205,8 @@ public class AddUser : ConsoleCommandBase<AddUserArguments>
 ```
 ### How do I secure WebCommandLine?
 
-WebCommandLine leverages existing ASP.NET Authorization features and requires little effort for integration. The WebCommandLine endpoint can be secured by setting the Authorization property of the WebCommandLineConfiguration class when calling the AddWebCommandLine method during your application startup.
+WebCommandLine leverages existing ASP.NET Authorization features and requires little effort for integration. The WebCommandLine endpoint can be secured by setting the Authorization property of the WebCommandLineConfiguration class when calling the AddWebCommandLine method during your application startup or
+You can simply add the add the Authorize attribute to the command class.
 
 ```csharp
 
@@ -237,6 +238,39 @@ builder.Services.AddAuthorization(options =>
         });
     });
 });
+
+//....
+
+
+[Authorize(Policy = "PowerUser")]
+[ConsoleCommand("greet", "Returns a greeting message")]
+public class Greet : ConsoleCommandBase
+{
+    public override ConsoleResult Help()
+    {
+        var sb = new StringBuilder("<table class='webcli-tbl'><tr><td colspan='3' class='webcli-val'>Lists available arguments</td></tr>");
+        sb.Append("<tr><td class='webcli-lbl'>USAGE:</td><td colspan='2' class='webcli-val'>greet nyron</td></tr>");
+        sb.Append("</table>");
+
+        return new ConsoleResult(sb.ToString()) { isHTML = true };
+    }
+
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args)
+    {
+        if (args.Length != 0)
+            return Task.FromResult(new ConsoleResult($"Hello, {args[0]}. Nice to meet you!!") { isHTML = false });
+
+        var user = context.HttpContext.User;
+        if (user != null)
+        {
+            var name = user.FindFirst("preferred_username")?.Value;
+            if (!string.IsNullOrEmpty(name))
+                return Task.FromResult(new ConsoleResult($"Hello, {name}. Nice to meet you!!"));
+        }
+
+        return Task.FromResult(ConsoleResult.CreateError("Invalid argument pass"));
+    }
+}
 
 ```
 
@@ -289,4 +323,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.cli = new WebCLI('/MyWebCli', ajaxHandler);
 });
+
 ```
+
+### Breaking Changes
+2.0.0 - Added a new command context parameter to the ICommand interface and implementing base classes. This will enable greater flexibility and make the code more extendable.
+        This new context currently exposes the current HttpContexc, which can be used to access the HttpRequest (headers, users, claims etc) which can make integrating with other
+        areas of asp.net request pipeline much easier

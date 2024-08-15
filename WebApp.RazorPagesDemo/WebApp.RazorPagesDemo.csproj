@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebCommandLine.Commands\WebCommandLine.Commands.csproj" />
+    <ProjectReference Include="..\WebCommandLine\WebCommandLine.csproj" />
   </ItemGroup>
 
 </Project>

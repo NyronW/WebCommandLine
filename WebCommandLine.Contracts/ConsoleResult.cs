@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
@@ -16,6 +15,12 @@ namespace WebCommandLine
         public ConsoleResult(string output)
         {
             this.output = output;
+        }
+
+        public ConsoleResult(string output, bool isHtml)
+        {
+            this.output = output;
+            this.isHTML = isHtml;
         }
 
         public static ConsoleResult CreateError(string errorMessage)

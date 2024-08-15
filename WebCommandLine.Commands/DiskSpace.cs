@@ -15,7 +15,7 @@ namespace WebCommandLine.Commands
         }
 
 
-        protected override Task<ConsoleResult> RunAsyncCore(string[] args)
+        protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args)
         {
             var drives = DriveInfo.GetDrives();
             var result = "";

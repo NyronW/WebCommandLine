@@ -6,7 +6,7 @@ namespace WebCommandLine
     public abstract class ConsoleCommandBase : IConsoleCommand
     {
         public abstract ConsoleResult Help();
-        public virtual async Task<ConsoleResult> RunAsync(string[] args)
+        public virtual async Task<ConsoleResult> RunAsync(CommandContext context, string[] args)
         {
             if (args.Length != 0 && (args[0] == "?" || args[0].Equals("help", StringComparison.OrdinalIgnoreCase)))
             {
@@ -15,7 +15,7 @@ namespace WebCommandLine
 
             try
             {
-                return await RunAsyncCore(args);
+                return await RunAsyncCore(context, args);
             }
             catch
             {
@@ -23,6 +23,6 @@ namespace WebCommandLine
             }
         }
 
-        protected abstract Task<ConsoleResult> RunAsyncCore(string[] args);
+        protected abstract Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args);
     }
 }

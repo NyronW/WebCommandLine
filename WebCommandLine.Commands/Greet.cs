@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using Microsoft.AspNetCore.Authorization;
+using System.Text;
 
 namespace WebCommandLine.Commands;
 
+[Authorize(Policy = "PowerUser")]
 [ConsoleCommand("greet", "Returns a greeting message")]
 public class Greet : ConsoleCommandBase
 {
@@ -14,13 +16,19 @@ public class Greet : ConsoleCommandBase
         return new ConsoleResult(sb.ToString()) { isHTML = true };
     }
 
-    protected override Task<ConsoleResult> RunAsyncCore(string[] args)
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, string[] args)
     {
-        if (args.Length == 0)
+        if (args.Length != 0)
+            return Task.FromResult(new ConsoleResult($"Hello, {args[0]}. Nice to meet you!!") { isHTML = false });
+
+        var user = context.HttpContext.User;
+        if (user != null)
         {
-            return Task.FromResult(ConsoleResult.CreateError("Invalid argument pass"));
+            var name = user.FindFirst("preferred_username")?.Value;
+            if (!string.IsNullOrEmpty(name))
+                return Task.FromResult(new ConsoleResult($"Hello, {name}. Nice to meet you!!"));
         }
 
-        return Task.FromResult(new ConsoleResult($"Hello, {args[0]}. Nice to meet you!!") { isHTML = false });
+        return Task.FromResult(ConsoleResult.CreateError("Invalid argument pass"));
     }
 }

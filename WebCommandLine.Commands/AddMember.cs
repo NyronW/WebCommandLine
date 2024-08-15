@@ -50,7 +50,7 @@ public class AddMember : ConsoleCommandBase<AddMemberArguments>
         return result;
     }
 
-    protected override Task<ConsoleResult> RunAsyncCore(AddMemberArguments model)
+    protected override Task<ConsoleResult> RunAsyncCore(CommandContext context, AddMemberArguments model)
     {
         if (!model.Name.Equals("Jone Doe", StringComparison.OrdinalIgnoreCase))
         {

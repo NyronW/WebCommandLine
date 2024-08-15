@@ -117,7 +117,15 @@ class WebCLI {
                     self.newLine();
                 }
             })
-            .catch(function () { self.writeLine("Error sending request to server", "error"); })
+            .catch(function (error) {
+                var response = error.responseJSON;
+                if (response) {
+                    self.writeLine(response.output, "error");
+                }
+                else {
+                    self.writeLine("Error sending request to server", "error");
+                }
+            })
             .then(function ()  //Finally
             {
                 self.busy(false);

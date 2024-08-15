@@ -5,7 +5,7 @@ namespace WebCommandLine.Commands;
 [ConsoleCommand("gen-table", "Returns a striped html table")]
 public class ShowTable : IConsoleCommand
 {
-    public Task<ConsoleResult> RunAsync(string[] args)
+    public Task<ConsoleResult> RunAsync(CommandContext context, string[] args)
     {
         var people = new List<Person>
         {

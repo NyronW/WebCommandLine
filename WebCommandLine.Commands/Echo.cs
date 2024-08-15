@@ -3,7 +3,7 @@
     [ConsoleCommand("echo", "Echos back the first arg received")]
     public class Echo : IConsoleCommand
     {
-        public Task<ConsoleResult> RunAsync(string[] args)
+        public Task<ConsoleResult> RunAsync(CommandContext context, string[] args)
         {
             if (args.Length != 0)
             {

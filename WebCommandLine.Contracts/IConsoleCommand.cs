@@ -1,9 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-namespace WebCommandLine
+namespace WebCommandLine;
+
+public interface IConsoleCommand
 {
-    public interface IConsoleCommand
+    Task<ConsoleResult> RunAsync(CommandContext context, string[] args);
+}
+
+public class CommandContext
+{
+    public HttpContext HttpContext { get; }
+
+    public CommandContext(HttpContext httpContext)
     {
-        Task<ConsoleResult> RunAsync(string[] args);
+        HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
     }
 }
