@@ -1,12 +1,4 @@
 ﻿// Interface for HTTP Handlers
-class HttpHandler {
-    post(endpoint, options) {
-        // Implement this method in the specific handler
-        throw new Error("Method 'post' must be implemented.");
-    }
-}
-
-
 class WebCLI {
     constructor(endpoint, httpHandler) {
         var self = this;
@@ -104,27 +96,59 @@ class WebCLI {
             body: JSON.stringify({ cmdLine: txt })
         };
 
+        // Use the provided handler to make the request
         this.httpHandler(this.endpoint, requestOptions)
-            .then(function (result) {
+            .then(function (rawResponse) {
+                return self.handleResponse(rawResponse);
+            })
+            .catch(function (rawError) {
+                return self.handleResponseError(rawError);
+            })
+            .then(function (result)  //Finally
+            {
                 var output = result.output;
                 var style = result.isError ? "error" : "ok";
 
                 if (result.isHTML) {
                     self.writeHTML(output);
-                }
-                else {
+                } else {
                     self.writeLine(output, style);
                     self.newLine();
                 }
-            })
-            .catch(function () { self.writeLine("Error sending request to server", "error"); })
-            .then(function ()  //Finally
-            {
+
                 self.busy(false);
                 self.focus();
             });
 
         self.inputEl.blur();
+    }
+
+    handleResponse(rawResponse) {
+        try {
+            return JSON.parse(rawResponse);
+        } catch (e) {
+            return {
+                output: rawResponse,
+                isError: true,
+                isHTML: false,
+            };
+        }
+    }
+
+    handleResponseError(rawError) {
+        let parsedError;
+
+        try {
+            parsedError = JSON.parse(rawError);
+        } catch (e) {
+            parsedError = {
+                output: rawError || "An error occurred while sending command to remote server",
+                isError: true,
+                isHTML: false,
+            };
+        }
+
+        return parsedError;
     }
 
     focus() {
@@ -197,6 +221,8 @@ class WebCLI {
 
     // Default fetch handler
     defaultFetchHandler(endpoint, options) {
-        return fetch(endpoint, options).then(response => response.json());
+        return fetch(endpoint, options).then(response => response.text());
     }
 }
+
+

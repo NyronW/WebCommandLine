@@ -3,17 +3,44 @@
 
 // Write your JavaScript code.
 document.addEventListener("DOMContentLoaded", function () {
-    const ajaxHandler = (endpoint, options) => {
+    function ajaxHttpHandler(endpoint, options) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: endpoint,
+                method: options.method,
+                headers: options.headers,
+                data: options.body,
+                success: function(data) {
+                    resolve(data); // Return raw data as is
+                },
+                error: function(xhr) {
+                    // Handle error response here (including parsing)
+                    reject(xhr.responseText || xhr.statusText);
+                }
+            });
+        });
+    }
+
+    function axiosHttpHandler(endpoint, options) {
         const { method, headers, body } = options;
-        return $.ajax({
+        return axios({
             url: endpoint,
             method: method,
             headers: headers,
             data: body,
-            contentType: headers['Content-Type'],
-            dataType: 'json'
-        });
-    };
+            responseType: 'text'
+        }).then(response => {
+            console.log(response);
 
-    window.cli = new WebCLI('/MyWebCli', ajaxHandler);
+            return response.data
+        }) // Return the response as raw text
+            .catch(error => {
+                // Handle the error here (including parsing)
+                return Promise.reject(error.response?.data || error.message);
+            });
+    }
+
+
+
+    window.cli = new WebCLI('/MyWebCli', axiosHttpHandler);
 });

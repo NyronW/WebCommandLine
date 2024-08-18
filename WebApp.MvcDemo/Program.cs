@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using WebApp.Authorization;
+using WebApp.MvcDemo.Services;
 using WebCommandLine;
 using WebCommandLine.Commands;
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+builder.Services.AddSingleton<InMemoryUserStore>();
 
 builder.Services.AddWebCommandLine(options =>
 {
@@ -26,8 +28,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.AccessDeniedPath = "/NotAuthorized";
-    options.LoginPath = "/Login";
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
 builder.Services.AddTransient<IAuthorizationHandler, WebCmdLineAuthHandler>();
@@ -43,7 +45,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("PowerUser", policyBuilder =>
     {
         policyBuilder.RequireAuthenticatedUser();
-        policyBuilder.AddRequirements(new WebCmdLineRequirement());
+        //policyBuilder.AddRequirements(new WebCmdLineRequirement());
         policyBuilder.RequireAssertion(ctx =>
         {
             return ctx.User.IsInRole("BusinessAdmin");
@@ -68,6 +70,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

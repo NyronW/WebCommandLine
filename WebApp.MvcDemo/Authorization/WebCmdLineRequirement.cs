@@ -4,6 +4,6 @@ namespace WebApp.Authorization
 {
     public class WebCmdLineRequirement : IAuthorizationRequirement
     {
-        public string[] Commands { get; set; } = new[] { "help", "diskspace" };
+        public string[] Commands { get; set; } = ["help", "diskspace"];
     }
 }

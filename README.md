@@ -287,7 +287,7 @@ builder.Services.AddWebCommandLine(options =>
     options.StaticFilesUrl = "/MyWebAssets"; //This will be the base path for static files
     options.WebCliUrl = "/MyWebCli"; //command requests will go to this endpoint
 
-    // If true the JavaScript bjects with be automatically initialized, otherwise you have to manually inti window.cli object
+    // If true the JavaScript objects with be automatically initialized, otherwise you have to manually inti window.cli object
     // You would typically set this value to false when you want to override the default httpHandler
     options.AutoInitJsInstance = false; 
 });
@@ -299,29 +299,40 @@ builder.Services.AddWebCommandLine(options =>
 Client side code to override httpHandler
 ```javascript
 document.addEventListener("DOMContentLoaded", function () {
-    const ajaxHandler = (endpoint, options) => {
+   function ajaxHttpHandler(endpoint, options) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: endpoint,
+                method: options.method,
+                headers: options.headers,
+                data: options.body,
+                success: function(data) {
+                    resolve(data); // Return raw data as is
+                },
+                error: function(xhr) {
+                    // Handle error response here (including parsing)
+                    reject(xhr.responseText || xhr.statusText);
+                }
+            });
+        });
+    }
+
+    function axiosHttpHandler(endpoint, options) {
         const { method, headers, body } = options;
-        return $.ajax({
+        return axios({
             url: endpoint,
             method: method,
             headers: headers,
             data: body,
-            contentType: headers['Content-Type'],
-            dataType: 'json'
-        });
-    };
+        }).then(response => response.data) // Return the response as raw text
+          .catch(error => {
+              // Handle the error here (including parsing)
+              return Promise.reject(error.response?.data || error.message);
+          });
+    }
 
-    const axiosHandler = (endpoint, options) => {
-      const { method, headers, body } = options;
-      return axios({
-        url: endpoint,
-        method: method,
-        headers: headers,
-        data: body,
-      }).then(response => response.data);
-    };
 
-    window.cli = new WebCLI('/MyWebCli', ajaxHandler);
+    window.cli = new WebCLI('/MyWebCli', ajaxHttpHandler);
 });
 
 ```

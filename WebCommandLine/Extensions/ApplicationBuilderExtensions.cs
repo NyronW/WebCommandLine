@@ -57,26 +57,21 @@ public static class ApplicationBuilderExtensions
             builder.Run(async context =>
             {
                 var cancellationToken = context.RequestAborted;
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
 
                 try
                 {
-                    if (!await AuthorizeAsync(context, policyEvaluator!, config, authPolicyProvider!))
-                    {
-                        await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Access denied."));
-                        return;
-                    }
-
                     var req = context.Request;
 
                     if (req.Method != HttpMethod.Post.Method)
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                         await context.Response.WriteModelAsync(ConsoleResult.CreateError("Method not supported."));
                         return;
                     }
 
                     if (req.ContentLength == 0)
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         await context.Response.WriteModelAsync(ConsoleResult.CreateError("No command argument detected."));
                         return;
                     }
@@ -93,8 +88,9 @@ public static class ApplicationBuilderExtensions
 
                     if (string.IsNullOrWhiteSpace(command?.CmdLine))
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         await context.Response.WriteModelAsync(ConsoleResult.CreateError("Invalid command"));
-                        logger.LogDebug("Recieved invalid command from client");
+                        logger.LogDebug("Received invalid command from client");
                         return;
                     }
 
@@ -105,6 +101,7 @@ public static class ApplicationBuilderExtensions
 
                     if (cmd.Equals(config.HelpCommand, StringComparison.OrdinalIgnoreCase))
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
                         await context.Response.WriteModelAsync(Help(commands, config));
                         return;
                     }
@@ -113,43 +110,40 @@ public static class ApplicationBuilderExtensions
 
                     foreach (var cmdType in commands)
                     {
-                        var attr = (ConsoleCommandAttribute)cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault()!;
+                        var attr = cmdType.GetType().GetTypeInfo().GetCustomAttributes(typeof(ConsoleCommandAttribute)).FirstOrDefault() as ConsoleCommandAttribute;
                         if (attr == null || !attr.Name.Equals(cmd, StringComparison.OrdinalIgnoreCase)) continue;
                         cmdToRun = cmdType; break;
                     }
 
                     if (cmdToRun == null)
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         await context.Response.WriteModelAsync(new ConsoleErrorResult($"Invalid or missing command. Run the {config.HelpCommand} command to see a list of available commands"));
                         return;
                     }
 
-                    // Check for AuthorizeAttribute on the command and enforce authorization
+                    // Authorization check
                     var authorizeAttribute = cmdToRun.GetType().GetCustomAttribute<AuthorizeAttribute>();
-                    if (authorizeAttribute != null)
+                    if (!await AuthorizeAsync(context, policyEvaluator!, config, authorizeAttribute!, authPolicyProvider!))
                     {
-                        if (!await AuthorizeCommandAsync(context, policyEvaluator!, authorizeAttribute, authPolicyProvider!))
-                        {
-                            await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Access denied."));
-                            return;
-                        }
+                        return;
                     }
 
-                    // Instantiate the context and run the command
                     var commandContext = new CommandContext(context);
-
                     await context.Response.WriteModelAsync(await cmdToRun.RunAsync(commandContext, args.Skip(1).ToArray()));
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Unhandled exception occured while processing command");
-                    await context.Response.WriteModelAsync(new ConsoleErrorResult("Internal server error occured while executing command"));
+                    logger.LogError(ex, "Unhandled exception occurred while processing command");
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    await context.Response.WriteModelAsync(new ConsoleErrorResult("Internal server error occurred while executing command"));
                 }
             });
         });
 
         return app;
     }
+
 
     private static ConsoleResult Help(IEnumerable<IConsoleCommand> commands, WebCommandLineConfiguration config)
     {
@@ -170,95 +164,48 @@ public static class ApplicationBuilderExtensions
     }
 
     private static async Task<bool> AuthorizeAsync(HttpContext context, IPolicyEvaluator policyEvaluator,
-        WebCommandLineConfiguration configuration, IAuthorizationPolicyProvider policyProvider)
+        WebCommandLineConfiguration configuration, AuthorizeAttribute authorizeAttribute, IAuthorizationPolicyProvider policyProvider)
     {
-        bool authorized = false;
-
-        if (configuration.Authorization is null)
+        // If no authorization policy is configured and no authorize attribute is on the command, allow the request
+        if (configuration.Authorization == null && authorizeAttribute == null)
         {
-            authorized = true;
-        }
-        else
-        {
-            if (_authorizationPolicy is null)
-            {
-#pragma warning disable CS8601 // Possible null reference assignment.
-                _authorizationPolicy = await AuthorizationPolicy.CombineAsync(policyProvider, configuration.Authorization)!;
-#pragma warning restore CS8601 // Possible null reference assignment.
-            }
-
-            AuthenticateResult authenticateResult = await policyEvaluator.AuthenticateAsync(_authorizationPolicy, context);
-            PolicyAuthorizationResult authorizeResult = await policyEvaluator.AuthorizeAsync(_authorizationPolicy, authenticateResult, context, null);
-
-            if (authorizeResult.Challenged)
-            {
-                await ChallengeAsync(context);
-            }
-            else if (authorizeResult.Forbidden)
-            {
-                await ForbidAsync(context);
-            }
-            else
-            {
-                authorized = true;
-            }
+            return true;
         }
 
-        return authorized;
-    }
-
-    private static async Task ChallengeAsync(HttpContext httpContext)
-    {
-        if (_authorizationPolicy?.AuthenticationSchemes.Count > 0)
+        // Combine the configured policies
+        if (_authorizationPolicy == null)
         {
-            foreach (string authenticationScheme in _authorizationPolicy.AuthenticationSchemes)
-            {
-                await httpContext.ChallengeAsync(authenticationScheme);
-            }
-        }
-        else
-        {
-            await httpContext.ChallengeAsync();
-        }
-    }
+            List<IAuthorizeData> authorizeDatas = [];
+            if (authorizeAttribute != null) authorizeDatas.Add(authorizeAttribute);
+            if (configuration.Authorization != null) authorizeDatas.AddRange(configuration.Authorization);
 
-    private static async Task ForbidAsync(HttpContext httpContext)
-    {
-        if (_authorizationPolicy?.AuthenticationSchemes.Count > 0)
-        {
-            foreach (string authenticationScheme in _authorizationPolicy.AuthenticationSchemes)
-            {
-                await httpContext.ForbidAsync(authenticationScheme);
-            }
+            _authorizationPolicy = await AuthorizationPolicy.CombineAsync(policyProvider, authorizeDatas);
         }
-        else
-        {
-            await httpContext.ForbidAsync();
-        }
-    }
 
-    private static async Task<bool> AuthorizeCommandAsync(HttpContext context, IPolicyEvaluator policyEvaluator, AuthorizeAttribute authorizeAttribute, IAuthorizationPolicyProvider policyProvider)
-    {
-        var policy = await AuthorizationPolicy.CombineAsync(policyProvider, [authorizeAttribute]);
-        if (policy == null) return false;
+        // Authenticate the request (this will set the context.User principal)
+        AuthenticateResult authenticateResult = await policyEvaluator.AuthenticateAsync(_authorizationPolicy, context);
 
-        var authenticateResult = await policyEvaluator.AuthenticateAsync(policy, context);
-        var authorizeResult = await policyEvaluator.AuthorizeAsync(policy, authenticateResult, context, null);
+        // Evaluate the authorization policy
+        PolicyAuthorizationResult authorizeResult = await policyEvaluator.AuthorizeAsync(_authorizationPolicy, authenticateResult, context, resource: null);
 
         if (authorizeResult.Challenged)
         {
-            await ChallengeAsync(context);
+            // If the user is not authenticated, return 401 Unauthorized
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Unauthenticated."));
             return false;
         }
         else if (authorizeResult.Forbidden)
         {
-            await ForbidAsync(context);
+            // If the user is authenticated but not authorized, return 403 Forbidden
+            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            await context.Response.WriteModelAsync(ConsoleResult.CreateError("Cannot execute command: Access denied."));
             return false;
         }
 
+        // If the request is authorized, proceed
         return true;
     }
-
     #region Extension Methods
     internal static Task WriteModelAsync<T>(this HttpResponse response, T arg, CancellationToken cancellationToken = default)
     {
