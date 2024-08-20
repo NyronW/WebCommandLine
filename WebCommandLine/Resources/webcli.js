@@ -190,12 +190,14 @@ class WebCLI {
 
         //Create & store CLI elements
         self.ctrlEl = doc.createElement("div");   //CLI control (outer frame)
+        self.resizeHandleEl = doc.createElement("div"); // Resize handle
         self.outputEl = doc.createElement("div");   //Div holding console output
         self.inputEl = doc.createElement("input"); //Input control
         self.busyEl = doc.createElement("div");   //Busy animation
 
         //Add classes
         self.ctrlEl.className = "webcli";
+        self.resizeHandleEl.className = "resize-handle"; // Add class for resize handle
         self.outputEl.className = "webcli-output";
         self.inputEl.className = "webcli-input";
         self.busyEl.className = "webcli-busy";
@@ -204,6 +206,7 @@ class WebCLI {
         self.inputEl.setAttribute("spellcheck", "false");
 
         //Assemble them
+        self.ctrlEl.appendChild(self.resizeHandleEl); // Add resize handle at the top
         self.ctrlEl.appendChild(self.outputEl);
         self.ctrlEl.appendChild(self.inputEl);
         self.ctrlEl.appendChild(self.busyEl);
@@ -211,6 +214,35 @@ class WebCLI {
         //Hide ctrl & add to DOM
         self.ctrlEl.style.display = "none";
         doc.body.appendChild(self.ctrlEl);
+
+        // Add event listener for resizing
+        self.addResizeFunctionality();
+    }
+
+    // Function to add resizing functionality
+    addResizeFunctionality() {
+        var self = this;
+        var isResizing = false;
+
+        self.resizeHandleEl.addEventListener("mousedown", function (e) {
+            isResizing = true;
+            document.body.style.cursor = "ns-resize";
+            document.body.style.userSelect = "none"; // Prevent text selection while resizing
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            if (!isResizing) return;
+            const newHeight = window.innerHeight - e.clientY;
+            if (newHeight > 100 && newHeight < window.innerHeight * 0.8) {
+                self.ctrlEl.style.height = `${newHeight}px`;
+            }
+        });
+
+        document.addEventListener("mouseup", function () {
+            isResizing = false;
+            document.body.style.cursor = "auto";
+            document.body.style.userSelect = "auto"; // Re-enable text selection
+        });
     }
 
     busy(b) {
