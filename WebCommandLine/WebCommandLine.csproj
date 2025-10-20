@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/NyronW/WebCommandLine</RepositoryUrl>
     <PackageTags>Command Line</PackageTags>
     <PackageId>WebCommandLine</PackageId>
-    <Version>2.2.1</Version>
+    <Version>2.3.0</Version>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -34,6 +34,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.7" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
 </Project>

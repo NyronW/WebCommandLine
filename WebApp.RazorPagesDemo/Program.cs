@@ -6,7 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
-builder.Services.AddWebCommandLine(typeof(ShowTable));
+builder.Services.AddWebCommandLine(options =>
+{
+    // Copy and paste configuration
+    options.EnableAutoCopy = true; // Enable select-to-copy functionality
+    options.EnableRightClickPaste = true; // Enable right-click-to-paste functionality
+}, typeof(ShowTable).Assembly);
 
 var app = builder.Build();
 

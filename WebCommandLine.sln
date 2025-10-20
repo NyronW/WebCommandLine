@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp.RazorPagesDemo", "We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebCommandLine.Contracts", "WebCommandLine.Contracts\WebCommandLine.Contracts.csproj", "{E7E3B8AA-38CB-4C60-BC3E-E8A02147C8BF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{642E850C-DB09-4009-88B2-3614F1BB0DA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{549DD2E8-70A0-4741-8651-49FE867F4D98} = {642E850C-DB09-4009-88B2-3614F1BB0DA0}
+		{D02EFD33-BE5E-47BD-8931-6D08B9C96A0F} = {642E850C-DB09-4009-88B2-3614F1BB0DA0}
+		{9BF2FF21-4036-472A-88A0-BC1131E29654} = {642E850C-DB09-4009-88B2-3614F1BB0DA0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {04D09EA2-BD3D-40DF-B8A1-BC5AA55ADF7D}

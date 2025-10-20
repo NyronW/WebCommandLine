@@ -21,7 +21,10 @@ namespace WebCommandLine.TagHelpers
                 output.PostContent.AppendHtml($"<link rel=\"stylesheet\" href=\"{config.StaticFilesUrl}/webcli.css\" asp-append-version=\"true\" />");
                 var javascript = $"<script src=\"{config.StaticFilesUrl}/webcli.js\" asp-append-version=\"true\"></script>";
                 if (config.AutoInitJsInstance)
-                    javascript += $"<script type=\"text/javascript\">document.addEventListener(\"DOMContentLoaded\", function(){{window.cli = window.cli || new WebCLI(\"{config.WebCliUrl}\");}});</script> ";
+                {
+                    var options = $"{{enableAutoCopy: {config.EnableAutoCopy.ToString().ToLower()}, enableRightClickPaste: {config.EnableRightClickPaste.ToString().ToLower()}}}";
+                    javascript += $"<script type=\"text/javascript\">document.addEventListener(\"DOMContentLoaded\", function(){{window.cli = window.cli || new WebCLI(\"{config.WebCliUrl}\", null, {options});}});</script> ";
+                }
 
                 output.PostContent.AppendHtml(javascript);
             }

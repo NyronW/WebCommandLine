@@ -1,14 +1,20 @@
 ﻿// Interface for HTTP Handlers
 class WebCLI {
-    constructor(endpoint, httpHandler) {
+    constructor(endpoint, httpHandler, options) {
         var self = this;
         self.history = [];   //Command history
         self.cmdOffset = 0;    //Reverse offset into history
         self.endpoint = endpoint || "/webcli"; //default endpoint
         self.httpHandler = httpHandler || self.defaultFetchHandler;
+        
+        // Configuration options
+        options = options || {};
+        self.enableAutoCopy = options.enableAutoCopy !== false; //default to true
+        self.enableRightClickPaste = options.enableRightClickPaste !== false; //default to true
 
         self.createElements();
         self.wireEvents();
+        self.enableCopyPasteFeatures();
         self.showGreeting();
         self.busy(false);
     }
@@ -165,19 +171,25 @@ class WebCLI {
     }
 
     writeLine(txt, cssSuffix) {
+        var lineContainer = document.createElement("div");
+        lineContainer.className = "webcli-line";
+        
         var span = document.createElement("span");
         cssSuffix = cssSuffix || "ok";
         span.className = "webcli-" + cssSuffix;
         span.innerText = txt;
-        this.outputEl.appendChild(span);
-        this.newLine();
+        
+        lineContainer.appendChild(span);
+        this.outputEl.appendChild(lineContainer);
+        this.scrollToBottom();
     }
 
     writeHTML(markup) {
         var div = document.createElement("div");
+        div.className = "webcli-line webcli-html";
         div.innerHTML = markup;
         this.outputEl.appendChild(div);
-        this.newLine();
+        this.scrollToBottom();
     }
 
     showGreeting() {
@@ -254,6 +266,193 @@ class WebCLI {
     // Default fetch handler
     defaultFetchHandler(endpoint, options) {
         return fetch(endpoint, options).then(response => response.text());
+    }
+
+    // Copy and paste functionality
+    enableCopyPasteFeatures() {
+        var self = this;
+        
+        // Enable auto-copy if configured
+        if (self.enableAutoCopy) {
+            // Listen for text selection in the output area
+            self.outputEl.addEventListener('mouseup', function() {
+                self.handleAutoCopy();
+            });
+            
+            // Also listen for keyboard selection (Shift + Arrow keys, etc.)
+            self.outputEl.addEventListener('keyup', function() {
+                self.handleAutoCopy();
+            });
+        }
+        
+        // Enable right-click paste if configured
+        if (self.enableRightClickPaste) {
+            // Add right-click to paste functionality to output area
+            self.outputEl.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.pasteFromClipboard();
+            });
+            
+            // Also add right-click paste to input area for consistency
+            self.inputEl.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.pasteFromClipboard();
+            });
+        }
+    }
+
+    handleAutoCopy() {
+        var self = this;
+        var selection = window.getSelection();
+        var selectedText = selection.toString().trim();
+        
+        // Only copy if there's actually selected text
+        if (selectedText.length > 0) {
+            self.copyToClipboard(selectedText);
+        }
+    }
+
+    copyToClipboard(text) {
+        var self = this;
+        
+        // Use the modern Clipboard API if available
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).catch(function(err) {
+                console.log('Clipboard API failed, using fallback');
+                self.fallbackCopy(text);
+            });
+        } else {
+            // Fallback for older browsers or non-secure contexts
+            self.fallbackCopy(text);
+        }
+    }
+
+    fallbackCopy(text) {
+        // Create a temporary textarea element
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.style.opacity = "0";
+        textArea.style.pointerEvents = "none";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            var successful = document.execCommand('copy');
+            if (!successful) {
+                console.log('Fallback copy failed');
+            }
+        } catch (err) {
+            console.log('Fallback copy error:', err);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+
+    // Simple paste functionality
+    pasteFromClipboard() {
+        var self = this;
+        
+        // Focus the input field first
+        self.focus();
+        
+        // Use the modern Clipboard API if available
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.readText().then(function(text) {
+                self.insertTextAtCursor(text);
+            }).catch(function(err) {
+                console.log('Clipboard read failed:', err);
+                self.showPasteFeedback("Paste failed - clipboard access denied");
+            });
+        } else {
+            // Fallback: try to read from a temporary textarea
+            self.fallbackPaste();
+        }
+    }
+
+    insertTextAtCursor(text) {
+        var self = this;
+        var input = self.inputEl;
+        var start = input.selectionStart;
+        var end = input.selectionEnd;
+        var currentValue = input.value;
+        
+        // Insert the text at cursor position
+        var newValue = currentValue.substring(0, start) + text + currentValue.substring(end);
+        input.value = newValue;
+        
+        // Set cursor position after the inserted text
+        var newCursorPos = start + text.length;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+        
+        self.showPasteFeedback("Pasted " + text.length + " characters");
+    }
+
+    fallbackPaste() {
+        var self = this;
+        
+        // Create a temporary textarea to trigger paste
+        var textArea = document.createElement("textarea");
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.style.opacity = "0";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        
+        // Listen for paste event on the textarea
+        textArea.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            if (pastedText) {
+                self.insertTextAtCursor(pastedText);
+            } else {
+                self.showPasteFeedback("Paste failed - no text data");
+            }
+            document.body.removeChild(textArea);
+        });
+        
+        // Trigger paste
+        try {
+            document.execCommand('paste');
+        } catch (err) {
+            console.log('Fallback paste failed:', err);
+            self.showPasteFeedback("Paste failed");
+            document.body.removeChild(textArea);
+        }
+    }
+
+    showPasteFeedback(message) {
+        // Show temporary feedback
+        var feedback = document.createElement("div");
+        feedback.className = "webcli-paste-feedback";
+        feedback.innerText = message;
+        feedback.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            z-index: 1000;
+        `;
+        
+        this.ctrlEl.appendChild(feedback);
+        
+        setTimeout(function() {
+            if (feedback.parentNode) {
+                feedback.parentNode.removeChild(feedback);
+            }
+        }, 2000);
     }
 }
 

@@ -52,6 +52,39 @@
 
 /*Output text
 -----------------------------------------------------*/
+.webcli-output {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    cursor: text;
+}
+
+.webcli-line {
+    cursor: text;
+    padding: 1px 0;
+    line-height: 1.2;
+}
+
+/* Ensure spans within lines are also selectable */
+.webcli-line span {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Terminal-like selection highlighting */
+.webcli-output::-moz-selection {
+    background: #007acc;
+    color: white;
+}
+
+.webcli-output::selection {
+    background: #007acc;
+    color: white;
+}
+
 .webcli-cmd {
     color: #AAA;
 }
@@ -128,4 +161,18 @@
 .webcli-striped-tbl td {
     padding: 8px; /* Add padding for better spacing */
     color: white; /* Text color for table rows */
+}
+
+/* Paste feedback */
+.webcli-paste-feedback {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    z-index: 1000;
+    pointer-events: none;
 }

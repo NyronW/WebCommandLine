@@ -18,6 +18,10 @@ builder.Services.AddWebCommandLine(options =>
     // If true the JavaScript bjects with be automatically initialized, otherwise you have to manually inti window.cli object
     // You would typically set this value to false when you want to override the default httpHandler
     options.AutoInitJsInstance = false; 
+    
+    // Copy and paste configuration
+    options.EnableAutoCopy = true; // Enable select-to-copy functionality
+    options.EnableRightClickPaste = true; // Enable right-click-to-paste functionality
 }, typeof(ShowTable).Assembly);
 
 builder.Services.AddAuthentication(options =>
